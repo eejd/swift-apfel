@@ -98,8 +98,10 @@ jobs:
 
       - name: Diagnose API breakage for ApfelCore
         run: |
-          baseline=$(git describe --tags --abbrev=0)
-          if git show "${baseline}:Package.swift" | grep -Fq '.library(name: "ApfelCore"'; then
+          baseline=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [[ -z "$baseline" ]]; then
+            echo "Skipping API breakage check: no tags found in repository."
+          elif git show "${baseline}:Package.swift" | grep -Fq '.library(name: "ApfelCore"'; then
             swift package diagnose-api-breaking-changes "$baseline" --products ApfelCore
           else
             echo "Skipping API breakage check: ${baseline} predates the ApfelCore product."
